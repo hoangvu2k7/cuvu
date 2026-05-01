@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Chăn nuôi Pro Max</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <style>
+    /* ========== BIẾN CSS & THEME ========== */
+    :root {
+      --bg: #0f172a;
+      --surface: rgba(30, 41, 59, 0.7);
+      --surface-solid: #1e293b;
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --primary: #0ea5e9;
+      --primary-hover: #0284c7;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 4px 12px rgba(0,0,0,0.3);
+      --radius: 14px;
+      --transition: 0.25s ease;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: rgba(255, 255, 255, 0.85);
+      --surface-solid: #ffffff;
+      --border: rgba(0, 0, 0, 0.1);
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    body::before, body::after {
+      content: ''; position: fixed; border-radius: 50%;
+      filter: blur(120px); z-index: -1; opacity: 0.4;
+      pointer-events: none;
+      transition: opacity var(--transition);
+    }
+    body::before {
+      top: -20%; left: -10%; width: 70%; height: 70%;
+      background: radial-gradient(circle, rgba(14,165,233,0.15) 0%, transparent 70%);
+    }
+    body::after {
+      bottom: -20%; right: -10%; width: 70%; height: 70%;
+      background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+    }
+    [data-theme="light"] body::before,
+    [data-theme="light"] body::after { opacity: 0.2; }
+
+    .container { max-width: 1300px; margin: 0 auto; padding: 1.5rem; }
+
+    .glass {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: all var(--transition);
+      padding: 1.5rem;
+    }
+    .glass:hover { box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+
+    h1, h2, h3 { font-weight: 600; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.4rem; margin-bottom: 1rem; color: var(--text-secondary); }
+
+    .text-gradient {
+      background: linear-gradient(to right, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Grid helpers */
+    .row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .col-3 { flex: 1 1 250px; }
+    .col-2 { flex: 1 1 400px; }
+
+    /* Form elements */
+    label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
+    input, select, textarea, button {
+      font-family: inherit;
+    }
+    input, select, textarea {
+      width: 100%; background: var(--surface-solid);
+      border: 1px solid var(--border); color: var(--text);
+      padding: 0.7rem 1rem; border-radius: 10px;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14,165,233,0.25);
+    }
+    .input-group { margin-bottom: 1rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.4rem; padding: 0.65rem 1.3rem; border-radius: 10px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+      border: none; font-size: 0.95rem;
+    }
+    .btn-primary { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: white; }
+    .btn-primary:hover { background: linear-gradient(135deg, #0284c7, #2563eb); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: rgba(128,128,128,0.1); }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    .btn-danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 8px; }
+
+    .badge {
+      display: inline-flex; padding: 0.2rem 0.7rem; border-radius: 99px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-feed { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .badge-breed { background: rgba(14,165,233,0.2); color: #0ea5e9; border: 1px solid rgba(14,165,233,0.3); }
+    .badge-other { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); backdrop-filter: blur(12px); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: rgba(0,0,0,0.15); color: var(--text-secondary); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); }
+    td { padding: 0.9rem 1rem; border-bottom: 1px solid rgba(128,128,128,0.08); }
+    tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background 0.2s; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      padding: 0.8rem 1.2rem; border-radius: 12px; background: var(--surface); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      color: var(--text); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 0.5rem;
+      max-width: 360px;
+    }
+    .toast.success { border-left: 4px solid #10b981; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 500; backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: var(--surface-solid); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem; width: 90%; max-width: 500px;
+      box-shadow: 0 25px 40px rgba(0,0,0,0.4);
+    }
+
+    .filter-bar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+
+    .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.2rem; }
+
+    .theme-switch {
+      position: fixed; bottom: 20px; right: 20px; z-index: 100;
+      width: 44px; height: 44px; border-radius: 50%; background: var(--surface);
+      border: 1px solid var(--border); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; font-size: 1.3rem;
+      backdrop-filter: blur(8px);
+    }
+
+    @media (max-width: 768px) {
+      .row { flex-direction: column; }
+    }
+
+    .chart-row { display: flex; gap: 1.5rem; margin: 2rem 0; flex-wrap: wrap; }
+    .chart-box { flex: 1 1 300px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+      <h1 class="text-gradient">🌾 Quản lý Chăn nuôi Pro</h1>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn btn-outline btn-sm" onclick="window.importData()" aria-label="Nhập dữ liệu JSON">📥 Nhập</button>
+        <button class="btn btn-outline btn-sm" onclick="window.exportData()" aria-label="Xuất dữ liệu JSON">📤 Xuất JSON</button>
+        <button class="btn btn-outline btn-sm" onclick="window.exportCSV()" aria-label="Xuất CSV">📊 CSV</button>
+      </div>
+    </div>
+
+    <!-- Dashboard số liệu -->
+    <div class="row" style="margin-bottom: 1.5rem;" id="stats-dashboard"></div>
+
+    <!-- Biểu đồ Chart.js -->
+    <div class="chart-row">
+      <div class="chart-box glass">
+        <h2>📊 Cơ cấu chi phí</h2>
+        <canvas id="pieChart" height="220"></canvas>
+      </div>
+      <div class="chart-box glass">
+        <h2>📈 Chi phí 6 tháng gần đây</h2>
+        <canvas id="lineChart" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- Form thêm mới -->
+    <div class="row" style="margin-top: 2rem;">
+      <div class="col-2">
+        <h2>➕ Thêm giao dịch</h2>
+        <form id="entry-form" class="glass">
+          <div class="input-group">
+            <label for="date">Ngày</label>
+            <input type="date" id="date" required>
+          </div>
+          <div class="input-group">
+            <label for="category">Danh mục</label>
+            <select id="category"></select>
+          </div>
+          <div class="input-group">
+            <label for="amount">Số tiền (VNĐ)</label>
+            <input type="number" id="amount" placeholder="500.000" min="1000" required>
+          </div>
+          <div class="input-group">
+            <label for="notes">Ghi chú</label>
+            <textarea id="notes" rows="2" maxlength="200" placeholder="10 bao cám..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">➕ Thêm</button>
+        </form>
+      </div>
+
+      <!-- Lịch sử giao dịch -->
+      <div class="col-2">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 style="margin:0;">📋 Lịch sử</h2>
+          <button class="btn btn-outline btn-sm" onclick="window.undoDelete()" aria-label="Hoàn tác xóa" id="undo-btn" disabled>↩️ Hoàn tác xóa</button>
+        </div>
+        <div class="filter-bar">
+          <input type="date" id="filter-date-from" placeholder="Từ ngày" onchange="applyFilters()">
+          <input type="date" id="filter-date-to" placeholder="Đến ngày" onchange="applyFilters()">
+          <select id="filter-category" onchange="applyFilters()">
+            <option value="all">Tất cả danh mục</option>
+          </select>
+          <input type="text" id="filter-notes" placeholder="Tìm ghi chú..." oninput="applyFilters()" style="max-width:150px;">
+          <button class="btn btn-outline btn-sm" onclick="clearFilters()">🔄 Xóa lọc</button>
+        </div>
+        <div class="table-wrap">
+          <table aria-label="Lịch sử giao dịch">
+            <caption style="display:none;">Danh sách các khoản chi</caption>
+            <thead>
+              <tr>
+                <th style="width:10px;"><input type="checkbox" id="select-all" onclick="toggleSelectAll()" aria-label="Chọn tất cả"></th>
+                <th>Ngày</th>
+                <th>Danh mục</th>
+                <th>Ghi chú</th>
+                <th class="text-right">Số tiền</th>
+                <th class="text-center">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+        <button class="btn btn-danger btn-sm" style="margin-top:1rem;" onclick="window.bulkDelete()">🗑️ Xóa mục đã chọn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Modal chỉnh sửa -->
+  <div id="edit-modal" class="modal-overlay" style="display:none;" aria-hidden="true">
+    <div class="modal">
+      <h2>✏️ Chỉnh sửa giao dịch</h2>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="input-group"><label for="edit-date">Ngày</label><input type="date" id="edit-date" required></div>
+        <div class="input-group"><label for="edit-category">Danh mục</label><select id="edit-category"></select></div>
+        <div class="input-group"><label for="edit-amount">Số tiền</label><input type="number" id="edit-amount" min="1000" required></div>
+        <div class="input-group"><label for="edit-notes">Ghi chú</label><textarea id="edit-notes" rows="2"></textarea></div>
+        <div style="display:flex; gap:1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" onclick="closeEditModal()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Nút chuyển theme -->
+  <button class="theme-switch" onclick="toggleTheme()" aria-label="Đổi giao diện sáng/tối">🌓</button>
+
+  <script>
+    (function() {
+      // ============ CẤU HÌNH & BIẾN TOÀN CỤC ============
+      const STORAGE_ENTRIES = 'livestock_entries_v2';
+      const STORAGE_CATEGORIES = 'livestock_categories_v2';
+      const DEFAULT_CATEGORIES = ['feed', 'breed', 'other'];
+      const CATEGORY_LABELS = { feed: 'Cám', breed: 'Giống', other: 'Khác' };
+
+      let entries = [];
+      let categories = [...DEFAULT_CATEGORIES];
+      let deleteHistory = []; // {entry, index}
+      let currentPage = 1;
+      const PER_PAGE = 8;
+      let chartInstances = {};
+
+      // IndexedDB (tuỳ chọn lưu trữ lớn) – không dùng để code đơn giản, vẫn localStorage.
+
+      // ============ HELPER ============
+      function escapeHTML(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
+      const formatCurrency = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+      const formatDate = ds => ds ? ds.split('-').reverse().join('/') : '';
+
+      function generateID() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+      }
+
+      // ============ TOAST ============
+      function showToast(msg, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = msg;
+        container.appendChild(t);
+        setTimeout(() => {
+          t.style.transition = 'opacity 0.3s';
+          t.style.opacity = '0';
+          setTimeout(() => t.remove(), 300);
+        }, 3200);
+      }
+
+      // ============ LƯU TRỮ ============
+      function loadData() {
+        try {
+          const raw = localStorage.getItem(STORAGE_ENTRIES);
+          entries = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(entries)) entries = [];
+        } catch (e) { entries = []; }
+        try {
+          const catRaw = localStorage.getItem(STORAGE_CATEGORIES);
+          categories = catRaw ? JSON.parse(catRaw) : [...DEFAULT_CATEGORIES];
+          if (!Array.isArray(categories) || categories.length === 0) categories = [...DEFAULT_CATEGORIES];
+        } catch (e) { categories = [...DEFAULT_CATEGORIES]; }
+      }
+
+      function saveEntries() {
+        localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(entries));
+      }
+      function saveCategories() {
+        localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories));
+      }
+
+      // ============ QUẢN LÝ DANH MỤC ============
+      function getCategoryLabel(cat) {
+        return CATEGORY_LABELS[cat] || cat;
+      }
+      window.addCustomCategory = function(name) {
+        const id = name.toLowerCase().replace(/\s+/g, '_');
+        if (!id || categories.includes(id)) {
+          showToast('Danh mục không hợp lệ hoặc đã tồn tại.', 'error');
+          return;
+        }
+        categories.push(id);
+        saveCategories();
+        refreshCategoryDropdowns();
+        showToast('Đã thêm danh mục: ' + name, 'success');
+        renderTable();
+      };
+      window.removeCategory = function(id) {
+        if (DEFAULT_CATEGORIES.includes(id)) {
+          showToast('Không thể xoá danh mục mặc định.', 'error');
+          return;
+        }
+        const used = entries.some(e => e.category === id);
+        if (used) {
+          if (!confirm(`Danh mục "${id}" đang có giao dịch. Xoá sẽ chuyển thành "Khác". Tiếp tục?`)) return;
+          entries = entries.map(e => e.category === id ? {...e, category: 'other'} : e);
+          saveEntries();
+        }
+        categories = categories.filter(c => c !== id);
+        saveCategories();
+        refreshCategoryDropdowns();
+        refreshUI();
+      };
+
+      function refreshCategoryDropdowns() {
+        const selectIds = ['category', 'edit-category', 'filter-category'];
+        selectIds.forEach(id => {
+          const sel = document.getElementById(id);
+          if (!sel) return;
+          // Giữ lại giá trị đang chọn nếu có thể
+          const currentVal = sel.value;
+          if (id === 'filter-category') {
+            sel.innerHTML = '<option value="all">Tất cả danh mục</option>';
+          } else {
+            sel.innerHTML = '';
+          }
+          categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = getCategoryLabel(cat);
+            sel.appendChild(opt);
+          });
+          if (id !== 'filter-category' && categories.includes(currentVal)) sel.value = currentVal;
+        });
+      }
+
+      // ============ RENDER CHÍNH ============
+      function applyFilters() {
+        currentPage = 1;
+        renderTable();
+      }
+
+      function clearFilters() {
+        document.getElementById('filter-date-from').value = '';
+        document.getElementById('filter-date-to').value = '';
+        document.getElementById('filter-category').value = 'all';
+        document.getElementById('filter-notes').value = '';
+        applyFilters();
+      }
+
+      function getFilteredEntries() {
+        const from = document.getElementById('filter-date-from').value;
+        const to = document.getElementById('filter-date-to').value;
+        const cat = document.getElementById('filter-category').value;
+        const search = document.getElementById('filter-notes').value.toLowerCase().trim();
+
+        return entries.filter(e => {
+          if (from && e.date < from) return false;
+          if (to && e.date > to) return false;
+          if (cat !== 'all' && e.category !== cat) return false;
+          if (search && !(e.notes || '').toLowerCase().includes(search)) return false;
+          return true;
+        });
+      }
+
+      function renderTable() {
+        const filtered = getFilteredEntries();
+        const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * PER_PAGE;
+        const pageItems = filtered.slice(start, start + PER_PAGE);
+
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = '';
+        if (pageItems.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-secondary);">Không có giao dịch nào.</td></tr>`;
+          document.getElementById('pagination').innerHTML = '';
+          document.getElementById('select-all').checked = false;
+          return;
+        }
+
+        pageItems.forEach(entry => {
+          const tr = document.createElement('tr');
+          const badgeClass = entry.category === 'feed' ? 'badge-feed' : entry.category === 'breed' ? 'badge-breed' : 'badge-other';
+          tr.innerHTML = `
+            <td><input type="checkbox" class="entry-checkbox" data-id="${entry.id}" aria-label="Chọn"></td>
+            <td>${formatDate(entry.date)}</td>
+            <td><span class="badge ${badgeClass}">${escapeHTML(getCategoryLabel(entry.category))}</span></td>
+            <td>${escapeHTML(entry.notes || '-')}</td>
+            <td class="text-right" style="font-weight:500;">${formatCurrency(entry.amount)}</td>
+            <td class="text-center">
+              <button class="btn btn-outline btn-icon" onclick="window.editEntry('${entry.id}')" aria-label="Sửa">✏️</button>
+              <button class="btn btn-danger btn-icon" onclick="window.deleteEntry('${entry.id}')" aria-label="Xóa">🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Phân trang
+        const pagDiv = document.getElementById('pagination');
+        pagDiv.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-outline btn-sm' + (i === currentPage ? ' btn-primary' : '');
+          btn.textContent = i;
+          btn.onclick = () => { currentPage = i; renderTable(); };
+          pagDiv.appendChild(btn);
+        }
+
+        document.getElementById('select-all').checked = false;
+      }
+
+      function updateStats() {
+        const total = entries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        const feedCount = entries.filter(e => e.category === 'feed').length;
+        const breedCount = entries.filter(e => e.category === 'breed').length;
+        document.getElementById('stats-dashboard').innerHTML = `
+          <div class="col-3 glass" style="display:flex; align-items:center; gap:1rem;">
+            <span style="font-size:2rem;">💰</span><div><small style="color:var(--text-secondary);">Tổng chi</small><h2 style="margin:0;">${formatCurrency(total)}</h2></div>
+          </div>
+          <div class="col-3 glass" style="display:flex; align-items:center; gap:1rem;">
+            <span style="font-size:2rem;">📦</span><div><small style="color:var(--text-secondary);">Nhập Cám</small><h2 style="margin:0;">${feedCount}</h2></div>
+          </div>
+          <div class="col-3 glass" style="display:flex; align-items:center; gap:1rem;">
+            <span style="font-size:2rem;">🐰</span><div><small style="color:var(--text-secondary);">Nhập Giống</small><h2 style="margin:0;">${breedCount}</h2></div>
+          </div>
+        `;
+      }
+
+      function drawCharts() {
+        // Pie chart: tổng tiền theo category
+        const catTotals = {};
+        entries.forEach(e => {
+          catTotals[e.category] = (catTotals[e.category] || 0) + (Number(e.amount) || 0);
+        });
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        if (chartInstances.pie) chartInstances.pie.destroy();
+        chartInstances.pie = new Chart(ctxPie, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(catTotals).map(c => getCategoryLabel(c)),
+            datasets: [{
+              data: Object.values(catTotals),
+              backgroundColor: ['#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6', '#ec4899']
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // Line chart: 6 tháng gần nhất
+        const monthMap = new Map();
+        const today = new Date();
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          monthMap.set(key, 0);
+        }
+        entries.forEach(e => {
+          const [y,m] = e.date.split('-');
+          const key = `${y}-${m}`;
+          if (monthMap.has(key)) {
+            monthMap.set(key, monthMap.get(key) + (Number(e.amount) || 0));
+          }
+        });
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        if (chartInstances.line) chartInstances.line.destroy();
+        chartInstances.line = new Chart(ctxLine, {
+          type: 'line',
+          data: {
+            labels: [...monthMap.keys()].map(k => {
+              const [y,m] = k.split('-');
+              return `T${m}/${y}`;
+            }),
+            datasets: [{
+              label: 'Chi phí (VNĐ)',
+              data: [...monthMap.values()],
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56,189,248,0.1)',
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: { responsive: true }
+        });
+      }
+
+      function refreshUI() {
+        saveEntries();
+        updateStats();
+        renderTable();
+        drawCharts();
+        document.getElementById('undo-btn').disabled = deleteHistory.length === 0;
+      }
+
+      // ============ CRUD ============
+      window.addEntry = function(date, category, amount, notes) {
+        if (!date || isNaN(amount) || amount <= 0) {
+          showToast('Dữ liệu không hợp lệ.', 'error');
+          return false;
+        }
+        entries.unshift({
+          id: generateID(),
+          date,
+          category,
+          amount: Number(amount),
+          notes: notes.trim().slice(0,200)
+        });
+        showToast('Đã thêm giao dịch!', 'success');
+        refreshUI();
+        return true;
+      };
+
+      window.deleteEntry = function(id) {
+        const idx = entries.findIndex(e => e.id === id);
+        if (idx === -1) return;
+        if (!confirm(`Xoá giao dịch ${formatDate(entries[idx].date)}?`)) return;
+        const removed = entries.splice(idx, 1)[0];
+        deleteHistory.push({entry: removed, index: idx});
+        if (deleteHistory.length > 10) deleteHistory.shift(); // giới hạn 10 lần undo
+        showToast('Đã xoá. Nhấn Hoàn tác để khôi phục.', 'success');
+        refreshUI();
+      };
+
+      window.undoDelete = function() {
+        if (deleteHistory.length === 0) return;
+        const last = deleteHistory.pop();
+        entries.splice(last.index, 0, last.entry);
+        showToast('Đã hoàn tác xoá!', 'success');
+        refreshUI();
+      };
+
+      window.bulkDelete = function() {
+        const checked = [...document.querySelectorAll('.entry-checkbox:checked')];
+        if (checked.length === 0) {
+          showToast('Vui lòng chọn giao dịch cần xoá.', 'error');
+          return;
+        }
+        if (!confirm(`Xoá ${checked.length} giao dịch đã chọn?`)) return;
+        const ids = checked.map(cb => cb.dataset.id);
+        entries = entries.filter(e => !ids.includes(e.id));
+        deleteHistory = []; // ko undo bulk
+        showToast(`Đã xoá ${ids.length} mục.`, 'success');
+        refreshUI();
+      };
+
+      window.editEntry = function(id) {
+        const entry = entries.find(e => e.id === id);
+        if (!entry) return;
+        document.getElementById('edit-id').value = entry.id;
+        document.getElementById('edit-date').value = entry.date;
+        document.getElementById('edit-category').value = entry.category;
+        document.getElementById('edit-amount').value = entry.amount;
+        document.getElementById('edit-notes').value = entry.notes || '';
+        document.getElementById('edit-modal').style.display = 'flex';
+      };
+
+      window.closeEditModal = function() {
+        document.getElementById('edit-modal').style.display = 'none';
+      };
+
+      document.getElementById('edit-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        const date = document.getElementById('edit-date').value;
+        const category = document.getElementById('edit-category').value;
+        const amount = Number(document.getElementById('edit-amount').value);
+        const notes = document.getElementById('edit-notes').value.trim().slice(0,200);
+        if (!date || isNaN(amount) || amount <= 0) {
+          showToast('Dữ liệu chỉnh sửa không hợp lệ.', 'error');
+          return;
+        }
+        const idx = entries.findIndex(e => e.id === id);
+        if (idx !== -1) {
+          entries[idx] = { ...entries[idx], date, category, amount, notes };
+          showToast('Cập nhật thành công!', 'success');
+          refreshUI();
+          closeEditModal();
+        }
+      });
+
+      document.getElementById('edit-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditModal(); });
+
+      window.toggleSelectAll = function() {
+        const all = document.getElementById('select-all').checked;
+        document.querySelectorAll('.entry-checkbox').forEach(cb => cb.checked = all);
+      };
+
+      // ============ FORM THÊM ============
+      document.getElementById('entry-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const date = document.getElementById('date').value;
+        const category = document.getElementById('category').value;
+        const amount = document.getElementById('amount').value;
+        const notes = document.getElementById('notes').value;
+        if (window.addEntry(date, category, amount, notes)) {
+          document.getElementById('amount').value = '';
+          document.getElementById('notes').value = '';
+        }
+      });
+
+      // ============ EXPORT / IMPORT ============
+      window.exportData = function() {
+        const data = { entries, categories };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `chan-nuoi-backup-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        showToast('Xuất dữ liệu thành công.', 'success');
+      };
+
+      window.importData = function() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              const data = JSON.parse(ev.target.result);
+              if (data.entries && Array.isArray(data.entries) && data.categories && Array.isArray(data.categories)) {
+                entries = data.entries;
+                categories = data.categories;
+                saveEntries();
+                saveCategories();
+                refreshCategoryDropdowns();
+                refreshUI();
+                showToast('Nhập dữ liệu thành công!', 'success');
+              } else {
+                showToast('File không đúng định dạng.', 'error');
+              }
+            } catch (ex) {
+              showToast('Lỗi đọc file.', 'error');
+            }
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      };
+
+      window.exportCSV = function() {
+        if (entries.length === 0) { showToast('Không có dữ liệu.', 'error'); return; }
+        const header = 'Ngày,Loại,Ghi chú,Số tiền';
+        const rows = entries.map(e => {
+          const type = getCategoryLabel(e.category);
+          return `${e.date},${type},"${(e.notes||'').replace(/"/g, '""')}",${e.amount}`;
+        });
+        const csv = '\uFEFF' + [header, ...rows].join('\n');
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `chi-phi-chan-nuoi-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        showToast('Xuất CSV thành công.', 'success');
+      };
+
+      // ============ THEME ============
+      window.toggleTheme = function() {
+        const html = document.documentElement;
+        const current = html.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      };
+
+      // ============ KHỞI ĐỘNG ============
+      loadData();
+      // Khôi phục theme
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      refreshCategoryDropdowns();
+      // Set ngày hôm nay
+      document.getElementById('date').value = new Date().toISOString().slice(0,10);
+      refreshUI();
+    })();
+  </script>
+</body>
+</html>
